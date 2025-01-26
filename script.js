@@ -1,69 +1,47 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Select the necessary elements
-    const addButton = document.getElementById('add-task-btn');
-    const taskInput = document.getElementById('task-input');
-    const taskList = document.getElementById('task-list');
-
-    // Load tasks from Local Storage when the page loads
-    loadTasks();
-
-    // Event listener for the "Add Task" button
-    addButton.addEventListener('click', () => addTask(taskInput.value));
-
-    // Event listener for pressing "Enter" to add a task
-    taskInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-            addTask(taskInput.value);
-        }
-    });
-
-    // Function to load tasks from Local Storage
-    function loadTasks() {
-        const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-        storedTasks.forEach(taskText => addTask(taskText, false)); // 'false' avoids saving again when loading
-    }
-
-    // Function to add a task
-    function addTask(taskText, save = true) {
-        // Check if task text is empty
-        if (taskText.trim() === "") return;
-
-        // Create the list item for the task
-        const taskItem = document.createElement('li');
-        taskItem.textContent = taskText;
-
-        // Create a remove button for the task
-        const removeButton = document.createElement('button');
-        removeButton.textContent = "Remove";
-        removeButton.classList.add('remove-btn');
+document.addEventListener("DOMContentLoaded", function () {
+    // Initialize the Async Function
+    async function fetchUserData() {
+        // Define the API URL
+        const apiUrl = 'https://jsonplaceholder.typicode.com/users';
         
-        // When the remove button is clicked, remove the task
-        removeButton.addEventListener('click', () => {
-            taskItem.remove(); // Remove from the DOM
-            removeTaskFromStorage(taskText); // Remove from Local Storage
-        });
+        // Select the Data Container Element
+        const dataContainer = document.getElementById('api-data');
+        
+        // Clear existing content before appending new content
+        dataContainer.innerHTML = 'Loading user data...';
 
-        // Append the remove button to the task item
-        taskItem.appendChild(removeButton);
+        try {
+            // Fetch data using try-catch
+            const response = await fetch(apiUrl);
+            
+            // If response is not okay, throw an error
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
 
-        // Append the task item to the task list
-        taskList.appendChild(taskItem);
+            // Convert the response to JSON
+            const users = await response.json();
 
-        // Save the task to Local Storage (if 'save' is true)
-        if (save) {
-            const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-            storedTasks.push(taskText);
-            localStorage.setItem('tasks', JSON.stringify(storedTasks));
+            // Create and Append User List
+            const userList = document.createElement('ul');
+            
+            users.forEach(user => {
+                const listItem = document.createElement('li');
+                listItem.textContent = user.name;  // Display user name
+                userList.appendChild(listItem);
+            });
+
+            // Clear the loading message and append the user list
+            dataContainer.innerHTML = '';  // Remove "Loading..." message
+            dataContainer.appendChild(userList);  // Append the user list to the container
+
+        } catch (error) {
+            // Error Handling: If there's an error, show a failure message
+            dataContainer.innerHTML = 'Failed to load user data.';
+            console.error(error);  // Log the error for debugging purposes
         }
-
-        // Clear the input field
-        taskInput.value = "";
     }
 
-    // Function to remove a task from Local Storage
-    function removeTaskFromStorage(taskText) {
-        let storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-        storedTasks = storedTasks.filter(task => task !== taskText); // Remove the task from the array
-        localStorage.setItem('tasks', JSON.stringify(storedTasks)); // Save the updated array back to Local Storage
-    }
+    // Invoke fetchUserData once the HTML document is fully loaded
+    fetchUserData();
 });
