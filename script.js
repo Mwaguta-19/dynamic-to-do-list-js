@@ -1,47 +1,74 @@
-document.addEventListener("DOMContentLoaded", function () {
-    // Initialize the Async Function
-    async function fetchUserData() {
-        // Define the API URL
-        const apiUrl = 'https://jsonplaceholder.typicode.com/users';
-        
-        // Select the Data Container Element
-        const dataContainer = document.getElementById('api-data');
-        
-        // Clear existing content before appending new content
-        dataContainer.innerHTML = 'Loading user data...';
+const addButton = document.getElementById('add-task-btn');
+const taskInput = document.getElementById('task-input');
+const taskList = document.getElementById('task-list');
 
-        try {
-            // Fetch data using try-catch
-            const response = await fetch(apiUrl);
-            
-            // If response is not okay, throw an error
-            if (!response.ok) {
-                throw new Error('Failed to fetch data');
-            }
-
-            // Convert the response to JSON
-            const users = await response.json();
-
-            // Create and Append User List
-            const userList = document.createElement('ul');
-            
-            users.forEach(user => {
-                const listItem = document.createElement('li');
-                listItem.textContent = user.name;  // Display user name
-                userList.appendChild(listItem);
-            });
-
-            // Clear the loading message and append the user list
-            dataContainer.innerHTML = '';  // Remove "Loading..." message
-            dataContainer.appendChild(userList);  // Append the user list to the container
-
-        } catch (error) {
-            // Error Handling: If there's an error, show a failure message
-            dataContainer.innerHTML = 'Failed to load user data.';
-            console.error(error);  // Log the error for debugging purposes
-        }
+// Function to add tasks
+function addTask(taskText, save = true) {
+    if (taskText.trim() === '') {
+        alert('Please enter a task');
+        return;
     }
 
-    // Invoke fetchUserData once the HTML document is fully loaded
-    fetchUserData();
+    // Create a new list item (li)
+    const li = document.createElement('li');
+    li.textContent = taskText;
+
+    // Create the remove button
+    const removeButton = document.createElement('button');
+    removeButton.textContent = 'Remove';
+    removeButton.classList.add('remove-btn');
+
+    // Add event listener for the remove button
+    removeButton.addEventListener('click', () => {
+        li.remove();
+        removeTaskFromLocalStorage(taskText);
+    });
+
+    // Append the button to the list item and the list item to the list
+    li.appendChild(removeButton);
+    taskList.appendChild(li);
+
+    if (save) {
+        saveTaskToLocalStorage(taskText);
+    }
+
+    // Clear the input field
+    taskInput.value = '';
+}
+
+// Save task to localStorage
+function saveTaskToLocalStorage(taskText) {
+    const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    tasks.push(taskText);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+// Remove task from localStorage
+function removeTaskFromLocalStorage(taskText) {
+    let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    tasks = tasks.filter(task => task !== taskText);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+// Load tasks from localStorage
+function loadTasks() {
+    const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    storedTasks.forEach(taskText => addTask(taskText, false)); // false means don't save again
+}
+
+// Event listeners for adding tasks
+document.addEventListener('DOMContentLoaded', () => {
+    loadTasks();
+
+    addButton.addEventListener('click', () => {
+        const taskText = taskInput.value;
+        addTask(taskText);
+    });
+
+    taskInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            const taskText = taskInput.value;
+            addTask(taskText);
+        }
+    });
 });
