@@ -1,5 +1,6 @@
 // Wait for the DOM content to be fully loaded
 document.addEventListener("DOMContentLoaded", function() {
+    loadTasks();
 
     // Select the necessary DOM elements
     const addButton = document.getElementById("add-task-btn");
@@ -37,17 +38,26 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    function loadTasks() {
+        const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        storedTasks.forEach(taskText => addTask(taskText, false)); // 'false' indicates not to save again to Local Storage
+    }
+
     // Function to add a new task
     function addTask() {
         const taskText = taskInput.value.trim();
 
         // Check if the input is not empty
         if (taskText !== "") {
+
+
+            const storedTasks = JSON.parse(localStorage.getItem("tasks") || "[]");
             // Add the task to the tasks array
-            tasks.push(taskText);
+            // Add the new task to the tasks array
+            storedTasks.push(taskText);
 
             // Update localStorage
-            localStorage.setItem("tasks", JSON.stringify(tasks));
+            localStorage.setItem("tasks", JSON.stringify(storedTasks));
 
             // Clear the input field
             taskInput.value = "";
@@ -84,5 +94,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Render the tasks when the page is loaded
     renderTasks();
+
+
+
 
 });
